@@ -4,19 +4,18 @@ Coded: James Clutterbuck (2022)
 Requires: pip install python-osc
 """
 from datetime import datetime
+from multiprocessing.connection import Client
 import time
 from pythonosc import dispatcher
 from pythonosc import osc_server
 from codrone_edu.drone import *
 
 
-drone = Drone()
-drone.pair() # pair automatically, may not always work
-# drone.pair(port_name = 'COM3')    # pair with a specific port
+c = Client(("localhost", 5001))
 
 
 ip = "10.122.27.205"
-port = 5006
+port = 5004
 filePath = 'test.csv'
 auxCount = -1
 recording = False
@@ -54,30 +53,6 @@ def eeg_handler(address: str,*args):
         auxCount = len(args)-4
         writeFileHeader()
     if recording:
-        if old_time == -1:
-            old_time = time.time()
-        if time.time()-old_time > 5:
-            print("Blinks Counted: ", blinkCounter)
-            if blinkCounter == 2:
-                if inAir:
-                    drone.land()
-                    print("Landing")
-                else:
-                    drone.takeoff()
-                    print("Taking off")
-                inAir = not inAir
-                
-            if blinkCounter == 3:
-                print("Moving forward")
-                drone.move_forward(10, "cm", 0.5)
-            if blinkCounter == 4:
-                print("Turning right")
-                drone.right()
-            if blinkCounter == 5:
-                print("Turning left")
-                drone.left()
-            blinkCounter = 0
-            old_time = time.time() + 1
         timestampStr = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         fileString = timestampStr
         if address == "/muse/elements/theta_absolute":
@@ -91,45 +66,10 @@ def eeg_handler(address: str,*args):
             # print("Alpha: ", alpha)
         elif address == "/muse/elements/jaw_clench":
             print("Jaw Clenched")
-            # drone.flip("front")
-#             if blinkCounter == 1:
-#                 if inAir:
-#                     # drone.takeoff()
-#                     print("Taking off")
-#                 else:
-#                     # drone.land()
-#                     print("Landing")
-#                 inAir = not inAir
-                
-#             if blinkCounter == 2:
-#                 print("Moving forward")
-#                 # drone.move_forward(10, "cm", 0.5)
-#             if blinkCounter == 3:
-#                 print("Turning right")
-#                 # drone.right()
-#             if blinkCounter == 4:
-#                 print("Turning left")
-#                 # drone.left()
-            # blinkCounter = 0
-            # drone.turn_right() # make a 90 degree right turn.
 
-        elif address == "/muse/elements/blink":
-            
-            blinkCounter += 1
+        elif address == "/muse/elements/blink":   
             print("Blinked: ", blinkCounter)
-                
-            # drone.hover(1)
-            # drone.land()
-       
-        # if theta != -1 and beta != -1 and alpha != -1:
-        #     engagement = (beta) / (alpha + theta)
-            # print("Engagement: ", engagement)
-        
-        # for arg in args:
-        #     fileString += ","+str(arg)            
-        # fileString+="\n"
-        # # print(fileString)
-        # f.write(fileString)
+            c.send("Blinked")
     
 def marker_handler(address: str,i):
     global recording
