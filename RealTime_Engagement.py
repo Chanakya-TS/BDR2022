@@ -66,6 +66,7 @@ def eeg_handler(address: str,*args):
             # print("Alpha: ", alpha)
         elif address == "/muse/elements/jaw_clench":
             print("Jaw Clenched")
+            c.send("Jaw Clenched")
 
         elif address == "/muse/elements/blink":   
             print("Blinked: ", blinkCounter)

@@ -6,6 +6,7 @@ from codrone_edu.drone import *
 
 drone = Drone()
 drone.pair()
+inAir = False
 
 blinkCounter = 0
 # old_time =  time.time()
@@ -13,6 +14,7 @@ blinkCounter = 0
 def child(conn):
     global old_time
     global blinkCounter
+    global inAir
     while True:
         msg = conn.recv()
         # this just echos the value back, replace with your custom logic
@@ -20,6 +22,27 @@ def child(conn):
         # print("IN CHILD");
         if msg == "Blinked":
             blinkCounter += 1
+        if msg == "Jaw Clenched":
+            print("Blink Counter ", blinkCounter)
+            if blinkCounter == 2:
+                if inAir:
+                    drone.land()
+                    print("Landing")
+                else:
+                    drone.takeoff()
+                    print("Taking off")
+                inAir = not inAir
+                
+            if blinkCounter == 3:
+                print("Moving forward")
+                drone.move_forward(30, "cm", 0.5)
+            if blinkCounter == 4:
+                print("Turning right")
+                # drone.turn_right()
+            if blinkCounter == 5:
+                print("Turning left")
+                # drone.turn_left()
+            blinkCounter = 0
         
         # conn.send(msg)
 
@@ -53,18 +76,18 @@ def timePassed():
                 
             if blinkCounter == 3:
                 print("Moving forward")
-                drone.move_forward(10, "cm", 0.5)
+                # drone.move_forwar/d(10, "cm", 0.5)
             if blinkCounter == 4:
                 print("Turning right")
-                drone.turn_right()
+                # drone.turn_right()
             if blinkCounter == 5:
                 print("Turning left")
-                drone.turn_left()
+                # drone.turn_left()
             blinkCounter = 0
             oldtime = time.time()
 
-thread = Thread(target=timePassed)
+# thread = Thread(target=timePassed)
 
-thread.start()
+# thread.start()
 mother(('', 5001))
 # print("HELLO")
